@@ -1,0 +1,469 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Best Route | CarbonAware</title>
+
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f5faf6;
+      color: #173b2b;
+      font-family: Arial, sans-serif;
+    }
+
+    .route-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 18px 5%;
+      background: #fff;
+      border-bottom: 1px solid #dce8de;
+    }
+
+    .route-nav a {
+      color: #176c42;
+      text-decoration: none;
+      font-weight: 600;
+      margin-right: 14px;
+    }
+
+    .route-page {
+      max-width: 1150px;
+      margin: auto;
+      padding: 30px 20px;
+    }
+
+    .route-heading { margin-bottom: 24px; }
+
+    .eyebrow {
+      color: #16834a;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .route-heading h1 {
+      font-size: clamp(30px, 5vw, 44px);
+      margin: 10px 0;
+    }
+
+    .route-heading p {
+      color: #607166;
+      line-height: 1.6;
+    }
+
+    .route-panel {
+      padding: 24px;
+      background: white;
+      border: 1px solid #dce8de;
+      border-radius: 18px;
+      box-shadow: 0 8px 28px #173b2b0a;
+    }
+
+    .route-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cfdbd1;
+      border-radius: 9px;
+      background: white;
+      color: #173b2b;
+      font-size: 15px;
+    }
+
+    .route-button {
+      width: 100%;
+      padding: 14px;
+      background: #16834a;
+      color: white;
+      border: 0;
+      border-radius: 9px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .route-button:hover { background: #106a3a; }
+    .route-button:disabled { opacity: .6; cursor: wait; }
+
+    #routeStatus {
+      padding: 12px 14px;
+      margin-top: 18px;
+      background: #f2f8f3;
+      border-radius: 9px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    #routeMap {
+      width: 100%;
+      height: 450px;
+      margin-top: 22px;
+      border: 1px solid #dce8de;
+      border-radius: 15px;
+      background: #e8f0e9;
+      z-index: 1;
+    }
+
+    .results-title { margin: 26px 0 14px; }
+
+    #routeResults {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 15px;
+    }
+
+    .route-card {
+      padding: 19px;
+      background: white;
+      border: 1px solid #dce8de;
+      border-radius: 13px;
+    }
+
+    .route-card h3 {
+      margin: 0 0 13px;
+      color: #176c42;
+    }
+
+    .route-card p { line-height: 1.5; }
+
+    .route-note {
+      color: #64746a;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 650px) {
+      .route-form { grid-template-columns: 1fr; }
+      .route-panel { padding: 16px; }
+      #routeMap { height: 350px; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="route-nav">
+    <a href="../index.html">🌱 CarbonAware</a>
+    <div>
+      <a href="../index.html">Home</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="recommendations.html">Recommendations</a>
+    </div>
+  </nav>
+
+  <main class="route-page">
+    <header class="route-heading">
+      <span class="eyebrow">SMART CARBON-AWARE TRAVEL</span>
+      <h1>Find Your Best Route</h1>
+      <p>
+        Compare road routes, estimated travel time, distance and carbon emissions.
+      </p>
+    </header>
+
+    <section class="route-panel">
+      <div class="route-form">
+        <div class="field">
+          <label for="apiKey">HeiGIT API key</label>
+          <input id="apiKey" type="password" autocomplete="off"
+                 placeholder="Paste your API key">
+        </div>
+
+        <div class="field">
+          <label for="origin">Starting location</label>
+          <input id="origin" placeholder="e.g. Parel, Mumbai">
+        </div>
+
+        <div class="field">
+          <label for="destination">Destination</label>
+          <input id="destination" placeholder="e.g. Pune, Maharashtra">
+        </div>
+
+        <div class="field">
+          <label for="vehicle">Vehicle type</label>
+          <select id="vehicle">
+            <option value="0.18">Petrol car</option>
+            <option value="0.17">Diesel car</option>
+            <option value="0.10">Hybrid car</option>
+            <option value="0.07">Electric car (estimated)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="preference">Route priority</label>
+          <select id="preference">
+            <option value="fastest">Fastest available route</option>
+            <option value="shortest">Shortest available route</option>
+          </select>
+        </div>
+
+        <div class="field" style="align-self:end">
+          <button id="findRoute" class="route-button" type="button">
+            Find Best Route
+          </button>
+        </div>
+      </div>
+
+      <p class="route-note">
+        The API key is not saved by this page, but browser requests can be inspected.
+        Do not publish your key in your source code or commit it to GitHub.
+      </p>
+
+      <p id="routeStatus" role="status" aria-live="polite">
+        Enter your starting location and destination to begin.
+      </p>
+    </section>
+
+    <div id="routeMap" aria-label="Interactive road route map"></div>
+
+    <h2 class="results-title">Route Results</h2>
+    <section id="routeResults" aria-live="polite"></section>
+
+    <p class="route-note">
+      Travel times are estimates and do not include live traffic. CO₂ values use
+      illustrative per-kilometre factors, not official vehicle measurements.
+      Map data © OpenStreetMap contributors.
+    </p>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    const map = L.map("routeMap").setView([19.076, 72.8777], 8);
+
+    // OpenStreetMap's standard tile service. Keep attribution visible.
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
+    }).addTo(map);
+
+    let routeLayers = [];
+    let locationMarkers = [];
+
+    const statusBox = document.getElementById("routeStatus");
+    const resultsBox = document.getElementById("routeResults");
+    const findButton = document.getElementById("findRoute");
+
+    function clearMap() {
+      routeLayers.forEach(layer => map.removeLayer(layer));
+      locationMarkers.forEach(marker => map.removeLayer(marker));
+      routeLayers = [];
+      locationMarkers = [];
+      resultsBox.replaceChildren();
+    }
+
+    async function geocode(place, key) {
+      const url = new URL("https://api.heigit.org/pelias/v1/search");
+      url.searchParams.set("text", place);
+      url.searchParams.set("size", "1");
+      url.searchParams.set("api_key", key);
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error("Location search failed (HTTP " + response.status + ").");
+      }
+
+      const data = await response.json();
+
+      if (!data.features || data.features.length === 0) {
+        throw new Error("Location not found: " + place);
+      }
+
+      return data.features[0];
+    }
+
+    async function getRoute(start, end, key, preference) {
+      const response = await fetch(
+        "https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": key,
+            "Content-Type": "application/json",
+            "Accept": "application/geo+json, application/json"
+          },
+          body: JSON.stringify({
+            coordinates: [start, end],
+            preference: preference
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Directions request failed (HTTP " + response.status +
+          "). Check your API key, quota and routing API documentation."
+        );
+      }
+
+      const data = await response.json();
+      const feature = data.features && data.features[0];
+
+      if (!feature || !feature.properties || !feature.properties.summary) {
+        throw new Error("The routing service returned no usable route.");
+      }
+
+      return feature;
+    }
+
+    function addResult(feature, title, factor, color) {
+      const summary = feature.properties.summary;
+      const distanceKm = summary.distance / 1000;
+      const minutes = Math.round(summary.duration / 60);
+      const emissions = distanceKm * factor;
+
+      const layer = L.geoJSON(feature, {
+        style: {
+          color: color,
+          weight: 6,
+          opacity: 0.88
+        }
+      }).addTo(map);
+
+      routeLayers.push(layer);
+
+      const card = document.createElement("article");
+      card.className = "route-card";
+
+      const heading = document.createElement("h3");
+      heading.textContent = title;
+
+      const distance = document.createElement("p");
+      distance.textContent = "Distance: " + distanceKm.toFixed(1) + " km";
+
+      const time = document.createElement("p");
+      time.textContent =
+        "Estimated time: " + Math.floor(minutes / 60) + " hr " +
+        (minutes % 60) + " min";
+
+      const co2 = document.createElement("p");
+      co2.textContent = "Estimated CO₂: " + emissions.toFixed(2) + " kg";
+
+      card.append(heading, distance, time, co2);
+      resultsBox.appendChild(card);
+
+      return { layer, distanceKm, minutes, emissions };
+    }
+
+    function addMarkers(start, end) {
+      locationMarkers.push(
+        L.marker([start[1], start[0]])
+          .addTo(map)
+          .bindPopup("Starting location"),
+        L.marker([end[1], end[0]])
+          .addTo(map)
+          .bindPopup("Destination")
+      );
+    }
+
+    findButton.addEventListener("click", async () => {
+      const key = document.getElementById("apiKey").value.trim();
+      const origin = document.getElementById("origin").value.trim();
+      const destination = document.getElementById("destination").value.trim();
+      const factor = Number(document.getElementById("vehicle").value);
+      const preference = document.getElementById("preference").value;
+
+      if (!key || !origin || !destination) {
+        statusBox.textContent =
+          "Please enter your API key, starting location and destination.";
+        return;
+      }
+
+      if (origin.toLowerCase() === destination.toLowerCase()) {
+        statusBox.textContent =
+          "Starting location and destination must be different.";
+        return;
+      }
+
+      findButton.disabled = true;
+      clearMap();
+      statusBox.textContent = "Searching locations and calculating routes...";
+
+      try {
+        const [from, to] = await Promise.all([
+          geocode(origin, key),
+          geocode(destination, key)
+        ]);
+
+        const start = from.geometry.coordinates;
+        const end = to.geometry.coordinates;
+
+        addMarkers(start, end);
+
+        const primary = await getRoute(start, end, key, preference);
+        const primaryTitle =
+          preference === "fastest" ? "Fastest Route" : "Shortest Route";
+
+        const primaryResult = addResult(
+          primary, primaryTitle, factor, "#16834a"
+        );
+
+        let bounds = primaryResult.layer.getBounds();
+        const otherPreference =
+          preference === "fastest" ? "shortest" : "fastest";
+
+        try {
+          const secondary = await getRoute(
+            start, end, key, otherPreference
+          );
+
+          const secondaryTitle =
+            otherPreference === "fastest" ? "Fastest Route" : "Shortest Route";
+
+          const secondaryResult = addResult(
+            secondary, secondaryTitle, factor, "#e39a32"
+          );
+
+          bounds = bounds.extend(secondaryResult.layer.getBounds());
+        } catch (comparisonError) {
+          const note = document.createElement("p");
+          note.className = "route-note";
+          note.textContent =
+            "The main route loaded, but the comparison route was unavailable: " +
+            comparisonError.message;
+          resultsBox.appendChild(note);
+        }
+
+        map.fitBounds(bounds, { padding: [25, 25] });
+
+        statusBox.textContent =
+          "Routes loaded. Compare distance, travel time and estimated CO₂ below.";
+      } catch (error) {
+        statusBox.textContent =
+          error.message +
+          " Check your connection, API key and routing service.";
+      } finally {
+        findButton.disabled = false;
+      }
+    });
+
+    setTimeout(() => map.invalidateSize(), 250);
+  </script>
+</body>
+</html>
