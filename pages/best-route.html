@@ -1,469 +1,821 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Best Route | CarbonAware</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#16834a">
 
-  <link rel="stylesheet" href="../style.css">
-  <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <title>Best Route | CarbonAware</title>
 
-  <style>
-    * { box-sizing: border-box; }
+    <link rel="stylesheet" href="../style.css">
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
 
-    body {
-      margin: 0;
-      background: #f5faf6;
-      color: #173b2b;
-      font-family: Arial, sans-serif;
-    }
+    <style>
+        :root {
+            --route-green: #16834a;
+            --route-dark: #123b2a;
+            --route-mint: #e9f7ee;
+            --route-text: #1d2b24;
+            --route-muted: #627268;
+            --route-line: #dce8df;
+        }
 
-    .route-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 14px;
-      padding: 18px 5%;
-      background: #fff;
-      border-bottom: 1px solid #dce8de;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    .route-nav a {
-      color: #176c42;
-      text-decoration: none;
-      font-weight: 600;
-      margin-right: 14px;
-    }
+        body {
+            margin: 0;
+            background: #fbfdfb;
+            color: var(--route-text);
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            line-height: 1.55;
+        }
 
-    .route-page {
-      max-width: 1150px;
-      margin: auto;
-      padding: 30px 20px;
-    }
+        /* Navigation */
+        .route-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            padding: 16px max(20px, calc((100% - 1120px) / 2));
+            background: #fff;
+            border-bottom: 1px solid var(--route-line);
+        }
 
-    .route-heading { margin-bottom: 24px; }
+        .route-nav a {
+            color: var(--route-dark);
+            text-decoration: none;
+            font-weight: 650;
+            margin-right: 14px;
+        }
 
-    .eyebrow {
-      color: #16834a;
-      font-size: 12px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
+        .route-nav a:hover {
+            color: var(--route-green);
+        }
 
-    .route-heading h1 {
-      font-size: clamp(30px, 5vw, 44px);
-      margin: 10px 0;
-    }
+        .route-nav .brand {
+            font-size: 18px;
+            color: var(--route-green);
+        }
 
-    .route-heading p {
-      color: #607166;
-      line-height: 1.6;
-    }
+        /* Main Page */
+        .route-page {
+            max-width: 1160px;
+            margin: auto;
+            padding: 32px 20px 48px;
+        }
 
-    .route-panel {
-      padding: 24px;
-      background: white;
-      border: 1px solid #dce8de;
-      border-radius: 18px;
-      box-shadow: 0 8px 28px #173b2b0a;
-    }
+        .route-heading {
+            margin-bottom: 24px;
+        }
 
-    .route-form {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
-    }
+        .eyebrow {
+            color: var(--route-green);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.3px;
+        }
 
-    .field label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      font-weight: 700;
-    }
+        .route-heading h1 {
+            font-size: clamp(30px, 5vw, 46px);
+            line-height: 1.12;
+            margin: 10px 0;
+            color: var(--route-dark);
+        }
 
-    .field input,
-    .field select {
-      width: 100%;
-      padding: 13px;
-      border: 1px solid #cfdbd1;
-      border-radius: 9px;
-      background: white;
-      color: #173b2b;
-      font-size: 15px;
-    }
+        .route-heading p {
+            max-width: 720px;
+            color: var(--route-muted);
+            margin: 0;
+        }
 
-    .route-button {
-      width: 100%;
-      padding: 14px;
-      background: #16834a;
-      color: white;
-      border: 0;
-      border-radius: 9px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+        /* Search Form */
+        .route-panel {
+            padding: clamp(16px, 3vw, 26px);
+            background: #fff;
+            border: 1px solid var(--route-line);
+            border-radius: 20px;
+            box-shadow: 0 12px 35px #173b2b0b;
+        }
 
-    .route-button:hover { background: #106a3a; }
-    .route-button:disabled { opacity: .6; cursor: wait; }
+        .route-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
 
-    #routeStatus {
-      padding: 12px 14px;
-      margin-top: 18px;
-      background: #f2f8f3;
-      border-radius: 9px;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-    }
+        .field label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            font-weight: 750;
+            color: var(--route-dark);
+        }
 
-    #routeMap {
-      width: 100%;
-      height: 450px;
-      margin-top: 22px;
-      border: 1px solid #dce8de;
-      border-radius: 15px;
-      background: #e8f0e9;
-      z-index: 1;
-    }
+        .field input,
+        .field select {
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 13px;
+            border: 1px solid #cbd9ce;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--route-text);
+            font: inherit;
+        }
 
-    .results-title { margin: 26px 0 14px; }
+        .field input:focus,
+        .field select:focus {
+            outline: 3px solid #16834a26;
+            border-color: var(--route-green);
+        }
 
-    #routeResults {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 15px;
-    }
+        /* Button */
+        .route-button {
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 16px;
+            background: var(--route-green);
+            color: #fff;
+            border: 0;
+            border-radius: 10px;
+            font: inherit;
+            font-weight: 750;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
 
-    .route-card {
-      padding: 19px;
-      background: white;
-      border: 1px solid #dce8de;
-      border-radius: 13px;
-    }
+        .route-button:hover {
+            background: #106a3a;
+        }
 
-    .route-card h3 {
-      margin: 0 0 13px;
-      color: #176c42;
-    }
+        .route-button:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
 
-    .route-card p { line-height: 1.5; }
+        .form-actions {
+            display: flex;
+            align-items: end;
+        }
 
-    .route-note {
-      color: #64746a;
-      font-size: 13px;
-      line-height: 1.6;
-      margin-top: 18px;
-    }
+        /* Status Message */
+        #routeStatus {
+            padding: 13px 15px;
+            margin: 18px 0 0;
+            background: #f2f8f3;
+            border: 1px solid #e0ede3;
+            border-radius: 11px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
 
-    @media (max-width: 650px) {
-      .route-form { grid-template-columns: 1fr; }
-      .route-panel { padding: 16px; }
-      #routeMap { height: 350px; }
-    }
-  </style>
+        #routeStatus[data-state="error"] {
+            background: #fff5f3;
+            border-color: #f2d1ca;
+            color: #8a2e20;
+        }
+
+        #routeStatus[data-state="success"] {
+            background: #eff9f1;
+            border-color: #d0e9d5;
+            color: #185c32;
+        }
+
+        /* Map */
+        .route-map-wrap {
+            position: relative;
+            margin-top: 22px;
+        }
+
+        #routeMap {
+            width: 100%;
+            height: clamp(330px, 50vw, 490px);
+            border: 1px solid var(--route-line);
+            border-radius: 16px;
+            background: #e8f0e9;
+            z-index: 1;
+        }
+
+        .map-caption {
+            font-size: 12px;
+            color: var(--route-muted);
+            margin: 8px 2px 0;
+        }
+
+        /* Route Results */
+        .results-title {
+            margin: 28px 0 13px;
+            font-size: 23px;
+            color: var(--route-dark);
+        }
+
+        #routeResults {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+            gap: 14px;
+        }
+
+        .route-card {
+            padding: 19px;
+            background: #fff;
+            border: 1px solid var(--route-line);
+            border-radius: 15px;
+            min-width: 0;
+        }
+
+        .route-card h3 {
+            margin: 0 0 13px;
+            color: var(--route-green);
+            font-size: 17px;
+        }
+
+        .route-card p {
+            line-height: 1.5;
+            margin: 8px 0;
+        }
+
+        .metric-label {
+            color: var(--route-muted);
+        }
+
+        .route-note {
+            color: var(--route-muted);
+            font-size: 13px;
+            line-height: 1.65;
+            margin-top: 18px;
+        }
+
+        .route-badge {
+            display: inline-block;
+            background: var(--route-mint);
+            color: var(--route-green);
+            border-radius: 99px;
+            padding: 4px 9px;
+            font-size: 12px;
+            font-weight: 750;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 650px) {
+            .route-form {
+                grid-template-columns: 1fr;
+            }
+
+            .route-nav {
+                padding: 14px 18px;
+            }
+
+            .route-nav div {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .route-nav a {
+                margin-right: 8px;
+            }
+
+            .route-page {
+                padding: 24px 14px 36px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-  <nav class="route-nav">
-    <a href="../index.html">🌱 CarbonAware</a>
-    <div>
-      <a href="../index.html">Home</a>
-      <a href="calculator.html">Calculator</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="recommendations.html">Recommendations</a>
-    </div>
-  </nav>
 
-  <main class="route-page">
-    <header class="route-heading">
-      <span class="eyebrow">SMART CARBON-AWARE TRAVEL</span>
-      <h1>Find Your Best Route</h1>
-      <p>
-        Compare road routes, estimated travel time, distance and carbon emissions.
-      </p>
-    </header>
+    <!-- Navigation Bar -->
+    <nav class="route-nav">
+        <a class="brand" href="../index.html">
+            🌱 CarbonAware
+        </a>
 
-    <section class="route-panel">
-      <div class="route-form">
-        <div class="field">
-          <label for="apiKey">HeiGIT API key</label>
-          <input id="apiKey" type="password" autocomplete="off"
-                 placeholder="Paste your API key">
+        <div>
+            <a href="../index.html">Home</a>
+            <a href="calculator.html">Calculator</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="recommendations.html">Recommendations</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="route-page">
+
+        <header class="route-heading">
+            <span class="eyebrow">SMART CARBON-AWARE TRAVEL</span>
+
+            <h1>Find Your Best Route</h1>
+
+            <p>
+                Search for places, view a road route, estimate travel time
+                and compare the carbon footprint of different vehicle types.
+            </p>
+        </header>
+
+        <!-- Route Search Form -->
+        <section class="route-panel" aria-label="Route search form">
+
+            <div class="route-form">
+
+                <div class="field">
+                    <label for="origin">Starting location</label>
+                    <input
+                        id="origin"
+                        autocomplete="off"
+                        placeholder="e.g. Parel, Mumbai"
+                        maxlength="180"
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="destination">Destination</label>
+                    <input
+                        id="destination"
+                        autocomplete="off"
+                        placeholder="e.g. Pune, Maharashtra"
+                        maxlength="180"
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="vehicle">Vehicle type</label>
+
+                    <select id="vehicle">
+                        <option value="0.18">Petrol car</option>
+                        <option value="0.17">Diesel car</option>
+                        <option value="0.10">Hybrid car</option>
+                        <option value="0.07">Electric car (estimated)</option>
+                        <option value="0.08">Motorcycle (estimated)</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="routeMode">Route display</label>
+
+                    <select id="routeMode">
+                        <option value="recommended">Recommended road route</option>
+                        <option value="alternatives">Compare available alternatives</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button
+                        id="findRoute"
+                        class="route-button"
+                        type="button"
+                    >
+                        Find Best Route
+                    </button>
+                </div>
+
+            </div>
+
+            <p
+                id="routeStatus"
+                role="status"
+                aria-live="polite"
+                data-state="idle"
+            >
+                Enter a starting location and destination to begin.
+            </p>
+
+        </section>
+
+        <!-- Interactive Map -->
+        <div class="route-map-wrap">
+            <div
+                id="routeMap"
+                aria-label="Interactive road route map"
+            ></div>
+
+            <p class="map-caption">
+                Map data © OpenStreetMap contributors.
+                Drag to explore and zoom to inspect the route.
+            </p>
         </div>
 
-        <div class="field">
-          <label for="origin">Starting location</label>
-          <input id="origin" placeholder="e.g. Parel, Mumbai">
-        </div>
+        <!-- Route Results -->
+        <h2 class="results-title">Route Results</h2>
 
-        <div class="field">
-          <label for="destination">Destination</label>
-          <input id="destination" placeholder="e.g. Pune, Maharashtra">
-        </div>
+        <section id="routeResults" aria-live="polite"></section>
 
-        <div class="field">
-          <label for="vehicle">Vehicle type</label>
-          <select id="vehicle">
-            <option value="0.18">Petrol car</option>
-            <option value="0.17">Diesel car</option>
-            <option value="0.10">Hybrid car</option>
-            <option value="0.07">Electric car (estimated)</option>
-          </select>
-        </div>
+        <!-- Disclaimer -->
+        <p class="route-note">
+            CO₂ estimates use illustrative factors per kilometre, not official
+            measurements. Travel times are routing estimates and do not include
+            live traffic. Location search uses OpenStreetMap Nominatim and road
+            routing uses the public OSRM demo service; public services have
+            fair-use limits and are not guaranteed for high-volume production use.
+        </p>
 
-        <div class="field">
-          <label for="preference">Route priority</label>
-          <select id="preference">
-            <option value="fastest">Fastest available route</option>
-            <option value="shortest">Shortest available route</option>
-          </select>
-        </div>
+    </main>
 
-        <div class="field" style="align-self:end">
-          <button id="findRoute" class="route-button" type="button">
-            Find Best Route
-          </button>
-        </div>
-      </div>
+    <!-- Leaflet Map Library -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-      <p class="route-note">
-        The API key is not saved by this page, but browser requests can be inspected.
-        Do not publish your key in your source code or commit it to GitHub.
-      </p>
+    <script>
+        (() => {
+            const statusBox = document.getElementById("routeStatus");
+            const resultsBox = document.getElementById("routeResults");
+            const findButton = document.getElementById("findRoute");
+            const originInput = document.getElementById("origin");
+            const destinationInput = document.getElementById("destination");
+            const vehicleInput = document.getElementById("vehicle");
+            const routeModeInput = document.getElementById("routeMode");
 
-      <p id="routeStatus" role="status" aria-live="polite">
-        Enter your starting location and destination to begin.
-      </p>
-    </section>
+            if (!window.L) {
+                statusBox.dataset.state = "error";
+                statusBox.textContent =
+                    "The map library could not load. Check your internet connection and refresh this page.";
 
-    <div id="routeMap" aria-label="Interactive road route map"></div>
+                findButton.disabled = true;
+                return;
+            }
 
-    <h2 class="results-title">Route Results</h2>
-    <section id="routeResults" aria-live="polite"></section>
+            // Initialize Map
+            const map = L.map("routeMap", {
+                scrollWheelZoom: true
+            }).setView([19.076, 72.8777], 8);
 
-    <p class="route-note">
-      Travel times are estimates and do not include live traffic. CO₂ values use
-      illustrative per-kilometre factors, not official vehicle measurements.
-      Map data © OpenStreetMap contributors.
-    </p>
-  </main>
+            L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+                    maxZoom: 19,
+                    attribution:
+                        '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>'
+                }
+            ).addTo(map);
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            let routeLayers = [];
+            let locationMarkers = [];
 
-  <script>
-    const map = L.map("routeMap").setView([19.076, 72.8777], 8);
+            const geocodeCache = new Map();
 
-    // OpenStreetMap's standard tile service. Keep attribution visible.
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
-    }).addTo(map);
+            // Update Status Message
+            function setStatus(message, state = "idle") {
+                statusBox.textContent = message;
+                statusBox.dataset.state = state;
+            }
 
-    let routeLayers = [];
-    let locationMarkers = [];
+            // Clear Previous Results
+            function clearMapResults() {
+                routeLayers.forEach(layer => map.removeLayer(layer));
+                locationMarkers.forEach(marker => map.removeLayer(marker));
 
-    const statusBox = document.getElementById("routeStatus");
-    const resultsBox = document.getElementById("routeResults");
-    const findButton = document.getElementById("findRoute");
+                routeLayers = [];
+                locationMarkers = [];
 
-    function clearMap() {
-      routeLayers.forEach(layer => map.removeLayer(layer));
-      locationMarkers.forEach(marker => map.removeLayer(marker));
-      routeLayers = [];
-      locationMarkers = [];
-      resultsBox.replaceChildren();
-    }
+                resultsBox.replaceChildren();
+            }
 
-    async function geocode(place, key) {
-      const url = new URL("https://api.heigit.org/pelias/v1/search");
-      url.searchParams.set("text", place);
-      url.searchParams.set("size", "1");
-      url.searchParams.set("api_key", key);
+            // Search for a Location
+            async function geocode(place) {
+                const cacheKey = place.trim().toLocaleLowerCase();
 
-      const response = await fetch(url);
+                if (geocodeCache.has(cacheKey)) {
+                    return geocodeCache.get(cacheKey);
+                }
 
-      if (!response.ok) {
-        throw new Error("Location search failed (HTTP " + response.status + ").");
-      }
+                const url = new URL(
+                    "https://nominatim.openstreetmap.org/search"
+                );
 
-      const data = await response.json();
+                url.searchParams.set("q", place);
+                url.searchParams.set("format", "jsonv2");
+                url.searchParams.set("limit", "1");
+                url.searchParams.set("addressdetails", "1");
 
-      if (!data.features || data.features.length === 0) {
-        throw new Error("Location not found: " + place);
-      }
+                const response = await fetch(url, {
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
 
-      return data.features[0];
-    }
+                if (!response.ok) {
+                    throw new Error(
+                        "Location search failed (HTTP " +
+                        response.status +
+                        "). Please wait a little and try again."
+                    );
+                }
 
-    async function getRoute(start, end, key, preference) {
-      const response = await fetch(
-        "https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson",
-        {
-          method: "POST",
-          headers: {
-            "Authorization": key,
-            "Content-Type": "application/json",
-            "Accept": "application/geo+json, application/json"
-          },
-          body: JSON.stringify({
-            coordinates: [start, end],
-            preference: preference
-          })
-        }
-      );
+                const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          "Directions request failed (HTTP " + response.status +
-          "). Check your API key, quota and routing API documentation."
-        );
-      }
+                if (!Array.isArray(data) || data.length === 0) {
+                    throw new Error(
+                        'Could not find "' +
+                        place +
+                        '". Try adding the city, state or country.'
+                    );
+                }
 
-      const data = await response.json();
-      const feature = data.features && data.features[0];
+                const result = {
+                    name: data[0].display_name || place,
+                    coordinates: [
+                        Number(data[0].lon),
+                        Number(data[0].lat)
+                    ]
+                };
 
-      if (!feature || !feature.properties || !feature.properties.summary) {
-        throw new Error("The routing service returned no usable route.");
-      }
+                if (
+                    !Number.isFinite(result.coordinates[0]) ||
+                    !Number.isFinite(result.coordinates[1])
+                ) {
+                    throw new Error(
+                        "The location search returned invalid coordinates. Try a more specific place."
+                    );
+                }
 
-      return feature;
-    }
+                geocodeCache.set(cacheKey, result);
 
-    function addResult(feature, title, factor, color) {
-      const summary = feature.properties.summary;
-      const distanceKm = summary.distance / 1000;
-      const minutes = Math.round(summary.duration / 60);
-      const emissions = distanceKm * factor;
+                return result;
+            }
 
-      const layer = L.geoJSON(feature, {
-        style: {
-          color: color,
-          weight: 6,
-          opacity: 0.88
-        }
-      }).addTo(map);
+            // Get Road Routes
+            async function getRoutes(start, end) {
+                const coordinates =
+                    start.join(",") + ";" + end.join(",");
 
-      routeLayers.push(layer);
+                const url =
+                    "https://router.project-osrm.org/route/v1/driving/" +
+                    coordinates +
+                    "?overview=full&geometries=geojson&alternatives=true&steps=false";
 
-      const card = document.createElement("article");
-      card.className = "route-card";
+                const response = await fetch(url);
 
-      const heading = document.createElement("h3");
-      heading.textContent = title;
+                if (!response.ok) {
+                    throw new Error(
+                        "Road routing failed (HTTP " +
+                        response.status +
+                        "). The free routing service may be busy; try again later."
+                    );
+                }
 
-      const distance = document.createElement("p");
-      distance.textContent = "Distance: " + distanceKm.toFixed(1) + " km";
+                const data = await response.json();
 
-      const time = document.createElement("p");
-      time.textContent =
-        "Estimated time: " + Math.floor(minutes / 60) + " hr " +
-        (minutes % 60) + " min";
+                if (
+                    data.code !== "Ok" ||
+                    !Array.isArray(data.routes) ||
+                    data.routes.length === 0
+                ) {
+                    throw new Error(
+                        "No drivable road route was found. Check the place names or try nearby locations."
+                    );
+                }
 
-      const co2 = document.createElement("p");
-      co2.textContent = "Estimated CO₂: " + emissions.toFixed(2) + " kg";
+                return data.routes.map(route => ({
+                    type: "Feature",
+                    properties: {
+                        summary: {
+                            distance: route.distance,
+                            duration: route.duration
+                        }
+                    },
+                    geometry: route.geometry
+                }));
+            }
 
-      card.append(heading, distance, time, co2);
-      resultsBox.appendChild(card);
+            // Create a Result Metric
+            function makeMetric(label, value) {
+                const p = document.createElement("p");
+                const strong = document.createElement("strong");
 
-      return { layer, distanceKm, minutes, emissions };
-    }
+                strong.textContent = label + ": ";
 
-    function addMarkers(start, end) {
-      locationMarkers.push(
-        L.marker([start[1], start[0]])
-          .addTo(map)
-          .bindPopup("Starting location"),
-        L.marker([end[1], end[0]])
-          .addTo(map)
-          .bindPopup("Destination")
-      );
-    }
+                p.append(
+                    strong,
+                    document.createTextNode(value)
+                );
 
-    findButton.addEventListener("click", async () => {
-      const key = document.getElementById("apiKey").value.trim();
-      const origin = document.getElementById("origin").value.trim();
-      const destination = document.getElementById("destination").value.trim();
-      const factor = Number(document.getElementById("vehicle").value);
-      const preference = document.getElementById("preference").value;
+                return p;
+            }
 
-      if (!key || !origin || !destination) {
-        statusBox.textContent =
-          "Please enter your API key, starting location and destination.";
-        return;
-      }
+            // Display Route and Emissions
+            function addRouteResult(feature, title, factor, color) {
+                const summary = feature.properties.summary;
 
-      if (origin.toLowerCase() === destination.toLowerCase()) {
-        statusBox.textContent =
-          "Starting location and destination must be different.";
-        return;
-      }
+                const distanceKm = summary.distance / 1000;
+                const minutes = Math.round(summary.duration / 60);
+                const emissions = distanceKm * factor;
 
-      findButton.disabled = true;
-      clearMap();
-      statusBox.textContent = "Searching locations and calculating routes...";
+                const layer = L.geoJSON(feature, {
+                    style: {
+                        color: color,
+                        weight: 6,
+                        opacity: 0.9
+                    }
+                }).addTo(map);
 
-      try {
-        const [from, to] = await Promise.all([
-          geocode(origin, key),
-          geocode(destination, key)
-        ]);
+                routeLayers.push(layer);
 
-        const start = from.geometry.coordinates;
-        const end = to.geometry.coordinates;
+                const card = document.createElement("article");
+                card.className = "route-card";
 
-        addMarkers(start, end);
+                const badge = document.createElement("span");
+                badge.className = "route-badge";
+                badge.textContent = "ROAD ROUTE";
 
-        const primary = await getRoute(start, end, key, preference);
-        const primaryTitle =
-          preference === "fastest" ? "Fastest Route" : "Shortest Route";
+                const heading = document.createElement("h3");
+                heading.textContent = title;
 
-        const primaryResult = addResult(
-          primary, primaryTitle, factor, "#16834a"
-        );
+                card.append(
+                    badge,
+                    heading,
+                    makeMetric(
+                        "Distance",
+                        distanceKm.toFixed(1) + " km"
+                    ),
+                    makeMetric(
+                        "Estimated time",
+                        Math.floor(minutes / 60) +
+                        " hr " +
+                        (minutes % 60) +
+                        " min"
+                    ),
+                    makeMetric(
+                        "Estimated CO₂",
+                        emissions.toFixed(2) + " kg"
+                    )
+                );
 
-        let bounds = primaryResult.layer.getBounds();
-        const otherPreference =
-          preference === "fastest" ? "shortest" : "fastest";
+                resultsBox.appendChild(card);
 
-        try {
-          const secondary = await getRoute(
-            start, end, key, otherPreference
-          );
+                return layer;
+            }
 
-          const secondaryTitle =
-            otherPreference === "fastest" ? "Fastest Route" : "Shortest Route";
+            // Add Start and Destination Markers
+            function addMarkers(start, end, startName, endName) {
+                const startMarker = L.marker([
+                    start[1],
+                    start[0]
+                ]).addTo(map);
 
-          const secondaryResult = addResult(
-            secondary, secondaryTitle, factor, "#e39a32"
-          );
+                startMarker.bindPopup(
+                    "Starting point: " + startName
+                );
 
-          bounds = bounds.extend(secondaryResult.layer.getBounds());
-        } catch (comparisonError) {
-          const note = document.createElement("p");
-          note.className = "route-note";
-          note.textContent =
-            "The main route loaded, but the comparison route was unavailable: " +
-            comparisonError.message;
-          resultsBox.appendChild(note);
-        }
+                const endMarker = L.marker([
+                    end[1],
+                    end[0]
+                ]).addTo(map);
 
-        map.fitBounds(bounds, { padding: [25, 25] });
+                endMarker.bindPopup(
+                    "Destination: " + endName
+                );
 
-        statusBox.textContent =
-          "Routes loaded. Compare distance, travel time and estimated CO₂ below.";
-      } catch (error) {
-        statusBox.textContent =
-          error.message +
-          " Check your connection, API key and routing service.";
-      } finally {
-        findButton.disabled = false;
-      }
-    });
+                locationMarkers.push(startMarker, endMarker);
+            }
 
-    setTimeout(() => map.invalidateSize(), 250);
-  </script>
+            // Main Route Search Function
+            async function findRoute() {
+                const origin = originInput.value.trim();
+                const destination = destinationInput.value.trim();
+                const factor = Number(vehicleInput.value);
+                const routeMode = routeModeInput.value;
+
+                if (!origin || !destination) {
+                    setStatus(
+                        "Please enter both a starting location and a destination.",
+                        "error"
+                    );
+                    return;
+                }
+
+                if (
+                    origin.toLocaleLowerCase() ===
+                    destination.toLocaleLowerCase()
+                ) {
+                    setStatus(
+                        "Starting location and destination must be different.",
+                        "error"
+                    );
+                    return;
+                }
+
+                findButton.disabled = true;
+                clearMapResults();
+
+                setStatus("Searching for the starting location…");
+
+                try {
+                    const from = await geocode(origin);
+
+                    // Respect the public geocoding service's rate limit.
+                    await new Promise(resolve =>
+                        setTimeout(resolve, 1100)
+                    );
+
+                    setStatus("Searching for the destination…");
+
+                    const to = await geocode(destination);
+
+                    const start = from.coordinates;
+                    const end = to.coordinates;
+
+                    addMarkers(
+                        start,
+                        end,
+                        from.name,
+                        to.name
+                    );
+
+                    setStatus("Calculating the road route…");
+
+                    const routes = await getRoutes(start, end);
+
+                    const shownRoutes =
+                        routeMode === "alternatives"
+                            ? routes.slice(0, 3)
+                            : routes.slice(0, 1);
+
+                    const colors = [
+                        "#16834a",
+                        "#e39a32",
+                        "#3977c3"
+                    ];
+
+                    const layers = [];
+
+                    shownRoutes.forEach((route, index) => {
+                        const title =
+                            shownRoutes.length === 1
+                                ? "Recommended Route"
+                                : "Route Option " + (index + 1);
+
+                        layers.push(
+                            addRouteResult(
+                                route,
+                                title,
+                                factor,
+                                colors[index]
+                            )
+                        );
+                    });
+
+                    let bounds = layers[0].getBounds();
+
+                    layers.slice(1).forEach(layer => {
+                        bounds = bounds.extend(layer.getBounds());
+                    });
+
+                    map.fitBounds(bounds, {
+                        padding: [28, 28]
+                    });
+
+                    if (
+                        routeMode === "alternatives" &&
+                        routes.length === 1
+                    ) {
+                        setStatus(
+                            "Route loaded. The routing service returned one route for this journey.",
+                            "success"
+                        );
+                    } else {
+                        setStatus(
+                            "Route loaded successfully. Review the distance, estimated time and CO₂ below.",
+                            "success"
+                        );
+                    }
+
+                } catch (error) {
+                    setStatus(
+                        error.message +
+                        " Check your connection and try a more specific location name.",
+                        "error"
+                    );
+
+                } finally {
+                    findButton.disabled = false;
+                }
+            }
+
+            // Button and Keyboard Events
+            findButton.addEventListener("click", findRoute);
+
+            [originInput, destinationInput].forEach(input => {
+                input.addEventListener("keydown", event => {
+                    if (event.key === "Enter") {
+                        findRoute();
+                    }
+                });
+            });
+
+            // Fix Map Sizing
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 250);
+
+        })();
+    </script>
+
 </body>
 </html>
