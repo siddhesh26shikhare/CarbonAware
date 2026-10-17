@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Carbon Calculator - CarbonAware</title>
+
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            🌱 CarbonAware
+        </div>
+
+        <div class="nav-links">
+
+            <a href="../index.html">
+                Home
+            </a>
+
+            <a href="calculator.html">
+                Calculate
+            </a>
+
+            <a href="dashboard.html">
+                Dashboard
+            </a>
+
+            <a href="recommendations.html">
+                AI Recommendations
+            </a>
+
+        </div>
+
+        <button class="login-btn">
+            Login
+        </button>
+
+    </nav>
+
+
+    <!-- ================= CALCULATOR ================= -->
+
+    <section class="calculator-section">
+
+        <div class="calculator-container">
+
+            <div class="calculator-heading">
+
+                <p class="section-label">
+                    CARBON CALCULATOR
+                </p>
+
+                <h1>
+                    Calculate Your Travel Carbon
+                </h1>
+
+                <p>
+                    Enter your journey details and compare
+                    the carbon impact of different travel options.
+                </p>
+
+            </div>
+
+
+            <!-- STARTING POINT -->
+
+            <div class="input-group">
+
+                <label>
+                    Starting Point
+                </label>
+
+                <input
+                    type="text"
+                    id="from"
+                    placeholder="Example: Mumbai"
+                >
+
+            </div>
+
+
+            <!-- DESTINATION -->
+
+            <div class="input-group">
+
+                <label>
+                    Destination
+                </label>
+
+                <input
+                    type="text"
+                    id="to"
+                    placeholder="Example: Jaipur"
+                >
+
+            </div>
+
+
+            <!-- DISTANCE -->
+
+            <div class="input-group">
+
+                <label>
+                    Distance (km)
+                </label>
+
+                <input
+                    type="number"
+                    id="distance"
+                    placeholder="Example: 150"
+                >
+
+            </div>
+
+
+            <!-- TRAVEL MODE -->
+
+            <div class="input-group">
+
+                <label>
+                    Select Your Travel Mode
+                </label>
+
+                <div class="transport-options">
+
+                    <button
+                        type="button"
+                        class="transport-btn"
+                        data-mode="car"
+                    >
+                        🚗
+                        <span>Car</span>
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="transport-btn"
+                        data-mode="bike"
+                    >
+                        🏍️
+                        <span>Bike</span>
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="transport-btn"
+                        data-mode="bus"
+                    >
+                        🚌
+                        <span>Bus</span>
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="transport-btn"
+                        data-mode="train"
+                    >
+                        🚆
+                        <span>Train</span>
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- CALCULATE -->
+
+            <button
+                type="button"
+                class="calculate-btn"
+                id="calculateBtn"
+            >
+                Calculate CO₂
+            </button>
+
+
+            <!-- ================= COMPARISON ================= -->
+
+            <div
+                class="comparison-result"
+                id="comparisonResult"
+            >
+
+                <p class="result-label">
+                    YOUR TRAVEL OPTIONS
+                </p>
+
+                <h2>
+                    Compare Your Carbon Emissions
+                </h2>
+
+
+                <div class="comparison-grid">
+
+
+                    <!-- CAR -->
+
+                    <div class="result-card">
+
+                        <div class="result-icon">
+                            🚗
+                        </div>
+
+                        <h3>
+                            Car
+                        </h3>
+
+                        <p id="carResult">
+                            0 kg CO₂
+                        </p>
+
+                    </div>
+
+
+                    <!-- BIKE -->
+
+                    <div class="result-card">
+
+                        <div class="result-icon">
+                            🏍️
+                        </div>
+
+                        <h3>
+                            Bike
+                        </h3>
+
+                        <p id="bikeResult">
+                            0 kg CO₂
+                        </p>
+
+                    </div>
+
+
+                    <!-- BUS -->
+
+                    <div class="result-card">
+
+                        <div class="result-icon">
+                            🚌
+                        </div>
+
+                        <h3>
+                            Bus
+                        </h3>
+
+                        <p id="busResult">
+                            0 kg CO₂
+                        </p>
+
+                    </div>
+
+
+                    <!-- TRAIN -->
+
+                    <div
+                        class="result-card best-option"
+                        id="trainCard"
+                    >
+
+                        <span class="best-label">
+                            LOWEST CO₂
+                        </span>
+
+                        <div class="result-icon">
+                            🚆
+                        </div>
+
+                        <h3>
+                            Train
+                        </h3>
+
+                        <p id="trainResult">
+                            0 kg CO₂
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= AI RESULT ================= -->
+
+            <div
+                class="ai-box"
+                id="aiBox"
+            >
+
+                <div class="ai-icon">
+                    🤖
+                </div>
+
+                <div>
+
+                    <h3>
+                        AI Recommendation
+                    </h3>
+
+                    <p id="aiText">
+                        Calculate your journey to receive
+                        an AI-powered recommendation.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= VIEW AI BUTTON ================= -->
+
+            <a
+                href="recommendations.html"
+                class="primary-btn"
+                id="viewAIButton"
+                style="
+                    display: block;
+                    text-align: center;
+                    text-decoration: none;
+                    margin-top: 20px;
+                "
+            >
+                🤖 View Detailed AI Recommendation
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer>
+
+        <h3>
+            🌱 CarbonAware
+        </h3>
+
+        <p>
+            AI-powered sustainable travel for a greener future.
+        </p>
+
+    </footer>
+
+
+    <script src="../script.js"></script>
+
+</body>
+
+</html>
